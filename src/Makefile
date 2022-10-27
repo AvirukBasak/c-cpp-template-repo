@@ -16,7 +16,6 @@ INCLUDE_DIR := ../include
 LIB_NAME    := mylib
 
 CC          := gcc
-CPP         := g++
 CFLAGS      := -Wall -Ofast
 CDBGFLAGS   := -Wall -g -ggdb -D DEBUG
 DBG         := gdb -q
