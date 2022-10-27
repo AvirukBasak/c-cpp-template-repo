@@ -16,8 +16,9 @@ INCLUDE_DIR := ../include
 LIB_NAME    := mylib
 
 CC          := gcc
-CPPFLAGS    := -Wall -Ofast
-CPPDBGFLAGS := -Wall -g -ggdb -D DEBUG
+CPP         := g++
+CFLAGS      := -Wall -Ofast
+CDBGFLAGS   := -Wall -g -ggdb -D DEBUG
 DBG         := gdb -q
 
 INCLUDE     := -I $(INCLUDE_DIR) -I $(LIB_DIR)
@@ -30,7 +31,7 @@ OBJECTS     := $(patsubst %.$(SRCEXT), %.$(OBJEXT), $(wildcard *.$(SRCEXT)))
 all: mkdirp $(OBJECTS) cpobj
 
 %.$(OBJEXT): %.$(SRCEXT)
-	$(CC) $(CPPFLAGS) $(INCLUDE) -c -o $@ $<
+	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
 
 ## debug build
 
@@ -39,7 +40,7 @@ DBG_OBJECTS := $(patsubst %.$(SRCEXT), %-dbg.$(OBJEXT), $(wildcard *.$(SRCEXT)))
 dbg: mkdirp $(DBG_OBJECTS) cpobj
 
 %-dbg.$(OBJEXT): %.$(SRCEXT)
-	$(CC) $(CPPDBGFLAGS) $(INCLUDE) -c -o $@ $<
+	$(CC) $(CDBGFLAGS) $(INCLUDE) -c -o $@ $<
 
 cpobj:
 	@cp *.$(OBJEXT) $(BUILD_DIR)
