@@ -4,3 +4,4 @@ lib/
 *.o
 *.a
 *.out
+core
