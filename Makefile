@@ -6,7 +6,7 @@ HEADEREXT   := h
 
 SRC_DIR     := src
 BUILD_DIR   := build
-BIN_DIR     := bin
+TARGET_DIR  := target
 LIB_DIR     := lib
 TEST_DIR    := tests
 INCLUDE_DIR := include
@@ -17,25 +17,25 @@ LIB_NAME    := mylib
 
 CC          := gcc
 CFLAGS      := -Wall -Ofast
-CDBGFLAGS   := -Wall -g -ggdb -D DEBUG
+CDBGFLAGS   := -Wall -g -D DEBUG
 DBG         := gdb -q
 
 INCLUDE     := -I $(INCLUDE_DIR) -I $(LIB_DIR)
-LIB         := -L$(LIB_DIR) -l$(LIB_NAME) -lm
+LIB         := -L$(LIB_DIR) -lm
 
 # targets
 
 TARGET_NAME := lib$(LIB_NAME)
-TARGET      := $(BIN_DIR)/$(TARGET_NAME).a
-DBG_TARGET  := $(BIN_DIR)/$(TARGET_NAME)-dbg.a
+TARGET      := $(TARGET_DIR)/$(TARGET_NAME).a
+DBG_TARGET  := $(TARGET_DIR)/$(TARGET_NAME)-dbg.a
+HDR_TARGET  := $(TARGET_DIR)/$(TARGET_NAME).$(HEADEREXT)
 
 SOURCES     := $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT))
 TESTSRC     := $(shell find $(TEST_DIR)/ -name "*."$(SRCEXT))
-HEADERS     := $(shell find $(INCLUDE_DIR)/ -name "*."$(HEADEREXT))
 
 ## release build
 
-all: mkdirp $(LIB_DIR)/$(TARGET_NAME).$(HEADEREXT) $(TARGET)
+rel: mkdirp $(HDR_TARGET) $(TARGET)
 
 OBJECTS     := $(patsubst $(SRC_DIR)/%.$(SRCEXT), $(BUILD_DIR)/%.$(OBJEXT), $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT)))
 
@@ -47,7 +47,7 @@ $(TARGET): $(OBJECTS)
 
 ## debug build
 
-dbg: mkdirp $(LIB_DIR)/$(TARGET_NAME).$(HEADEREXT) $(DBG_TARGET)
+dbg: mkdirp $(HDR_TARGET) $(DBG_TARGET)
 
 DBG_OBJECTS := $(patsubst $(SRC_DIR)/%.$(SRCEXT), $(BUILD_DIR)/%-dbg.$(OBJEXT), $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT)))
 
@@ -57,30 +57,29 @@ $(DBG_OBJECTS): $(SOURCES)
 $(DBG_TARGET): $(DBG_OBJECTS)
 	ar rcs $(DBG_TARGET) $(BUILD_DIR)/*-dbg.$(OBJEXT)
 
-$(LIB_DIR)/$(TARGET_NAME).$(HEADEREXT): $(HEADERS)
-	@grep --no-filename -v '^#\s*include\s*"' $(HEADERS) > $(BIN_DIR)/$(TARGET_NAME).$(HEADEREXT)
-	$(info make $(BIN_DIR)/$(TARGET_NAME).$(HEADEREXT))
+## make lib headers
 
-## execution
+$(HDR_TARGET): $(INCLUDE_DIR)/$(TARGET_NAME).$(HEADEREXT)
+	@cp $(INCLUDE_DIR)/$(TARGET_NAME).$(HEADEREXT) $(HDR_TARGET)
+	$(info make $(HDR_TARGET))
 
-test: mkdirp $(TARGET) $(TESTSRC)
-	@$(CC) $(CFLAGS) $(INCLUDE) $(TEST_DIR)/*.$(SRCEXT) -o $(BIN_DIR)/test -L$(BIN_DIR) $(LIB)
-	./$(BIN_DIR)/test
-	@rm -f ./$(BIN_DIR)/test
+## testing / execution
 
-testdbg: mkdirp $(DBG_OBJECTS) $(TESTSRC)
-	@$(CC) $(CDBGFLAGS) $(INCLUDE) $(DBG_OBJECTS) $(TEST_DIR)/*.$(SRCEXT) -o $(BIN_DIR)/test-dbg
-	$(DBG) $(BIN_DIR)/test-dbg
-	@rm -f ./$(BIN_DIR)/test-dbg
+test: rel $(TESTSRC)
+	@$(CC) $(CFLAGS) -I $(TARGET_DIR) $(TEST_DIR)/*.$(SRCEXT) -o $(TARGET_DIR)/test -L$(TARGET_DIR) -l$(LIB_NAME) $(LIB)
+	./$(TARGET_DIR)/test
+
+testdbg: dbg $(TESTSRC)
+	@$(CC) $(CDBGFLAGS) -I $(TARGET_DIR) $(DBG_OBJECTS) $(TEST_DIR)/*.$(SRCEXT) -o $(TARGET_DIR)/test-dbg $(LIB)
+	$(DBG) $(TARGET_DIR)/test-dbg
 
 ## mkdirp
 
 mkdirp:
 	@mkdir -p $(BUILD_DIR)
-	@mkdir -p $(BIN_DIR)
-	@mkdir -p $(LIB_DIR)
+	@mkdir -p $(TARGET_DIR)
 
-## Clean
+## cleanup
 
 clean:
 	@cd $(SRC_DIR) && $(MAKE) clean
@@ -88,4 +87,4 @@ clean:
 cleaner:
 	@cd $(SRC_DIR) && $(MAKE) cleaner
 	@rm -rf $(BUILD_DIR)
-	@rm -rf $(BIN_DIR)
+	@rm -rf $(TARGET_DIR)

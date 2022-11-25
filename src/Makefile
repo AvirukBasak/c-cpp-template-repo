@@ -6,7 +6,7 @@ HEADEREXT   := h
 
 SRC_DIR     := ../src
 BUILD_DIR   := ../build
-BIN_DIR     := ../bin
+TARGET_DIR  := ../target
 LIB_DIR     := ../lib
 TEST_DIR    := ../tests
 INCLUDE_DIR := ../include
@@ -17,17 +17,17 @@ LIB_NAME    := mylib
 
 CC          := gcc
 CFLAGS      := -Wall -Ofast
-CDBGFLAGS   := -Wall -g -ggdb -D DEBUG
+CDBGFLAGS   := -Wall -g -D DEBUG
 DBG         := gdb -q
 
 INCLUDE     := -I $(INCLUDE_DIR) -I $(LIB_DIR)
-LIB         := -L$(LIB_DIR) -l$(LIB_NAME) -lm
+LIB         := -L$(LIB_DIR) -lm
 
 ## release build
 
 OBJECTS     := $(patsubst %.$(SRCEXT), %.$(OBJEXT), $(wildcard *.$(SRCEXT)))
 
-all: mkdirp $(OBJECTS) cpobj
+rel: mkdirp $(OBJECTS) cpobj
 
 %.$(OBJEXT): %.$(SRCEXT)
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
@@ -45,7 +45,7 @@ cpobj:
 	@cp *.$(OBJEXT) $(BUILD_DIR)
 
 mkdirp:
-	@mkdir -p $(BUILD_DIR)/
+	@mkdir -p $(BUILD_DIR)
 
 clean:
 	@rm -f *.$(OBJEXT)
