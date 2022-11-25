@@ -35,7 +35,7 @@ TESTSRC     := $(shell find $(TEST_DIR)/ -name "*."$(SRCEXT))
 
 ## release build
 
-rel: mkdirp $(HDR_TARGET) $(TARGET)
+rel: mkdirp mklib $(HDR_TARGET) $(TARGET)
 
 OBJECTS     := $(patsubst $(SRC_DIR)/%.$(SRCEXT), $(BUILD_DIR)/%.$(OBJEXT), $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT)))
 
@@ -47,7 +47,7 @@ $(TARGET): $(OBJECTS)
 
 ## debug build
 
-dbg: mkdirp $(HDR_TARGET) $(DBG_TARGET)
+dbg: mkdirp mklib $(HDR_TARGET) $(DBG_TARGET)
 
 DBG_OBJECTS := $(patsubst $(SRC_DIR)/%.$(SRCEXT), $(BUILD_DIR)/%-dbg.$(OBJEXT), $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT)))
 
@@ -62,6 +62,10 @@ $(DBG_TARGET): $(DBG_OBJECTS)
 $(HDR_TARGET): $(INCLUDE_DIR)/$(TARGET_NAME).$(HEADEREXT)
 	@cp $(INCLUDE_DIR)/$(TARGET_NAME).$(HEADEREXT) $(HDR_TARGET)
 	$(info make $(HDR_TARGET))
+
+## build libraries
+mklib:
+	@cd $(LIB_DIR) && make
 
 ## testing / execution
 
@@ -83,8 +87,10 @@ mkdirp:
 
 clean:
 	@cd $(SRC_DIR) && $(MAKE) clean
+	@cd $(LIB_DIR) && $(MAKE) clean
 
 cleaner:
 	@cd $(SRC_DIR) && $(MAKE) cleaner
+	@cd $(LIB_DIR) && $(MAKE) cleaner
 	@rm -rf $(BUILD_DIR)
 	@rm -rf $(TARGET_DIR)
