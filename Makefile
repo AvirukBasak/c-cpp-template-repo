@@ -23,6 +23,8 @@ DBG         := gdb -q
 INCLUDE     := -I $(INCLUDE_DIR) -I $(LIB_DIR)
 LIB         := -L$(LIB_DIR) -lm
 
+LIBRARIES   := $(shell find $(LIB_DIR)/ -name "*.a")
+
 # targets
 
 TARGET_NAME := lib$(LIB_NAME)
@@ -31,30 +33,31 @@ DBG_TARGET  := $(TARGET_DIR)/$(TARGET_NAME)-dbg.a
 HDR_TARGET  := $(TARGET_DIR)/$(TARGET_NAME).$(HEADEREXT)
 
 SOURCES     := $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT))
+HEADERS     := $(shell find $(INCLUDE_DIR)/ -name "*."$(HEADEREXT))
 TESTSRC     := $(shell find $(TEST_DIR)/ -name "*."$(SRCEXT))
 
 ## release build
 
-rel: mkdirp mklib $(HDR_TARGET) $(TARGET)
+rel: mkdirp $(HDR_TARGET) $(TARGET)
 
 OBJECTS     := $(patsubst $(SRC_DIR)/%.$(SRCEXT), $(BUILD_DIR)/%.$(OBJEXT), $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT)))
 
-$(OBJECTS): $(SOURCES)
+$(OBJECTS): $(SOURCES) $(HEADERS)
 	@cd $(SRC_DIR) && $(MAKE)
 
-$(TARGET): $(OBJECTS)
+$(TARGET): $(LIBRARIES) $(OBJECTS)
 	ar rcs $(TARGET) $(BUILD_DIR)/*.$(OBJEXT)
 
 ## debug build
 
-dbg: mkdirp mklib $(HDR_TARGET) $(DBG_TARGET)
+dbg: mkdirp $(HDR_TARGET) $(DBG_TARGET)
 
 DBG_OBJECTS := $(patsubst $(SRC_DIR)/%.$(SRCEXT), $(BUILD_DIR)/%-dbg.$(OBJEXT), $(shell find $(SRC_DIR)/ -name "*."$(SRCEXT)))
 
-$(DBG_OBJECTS): $(SOURCES)
+$(DBG_OBJECTS): $(SOURCES) $(HEADERS)
 	@cd $(SRC_DIR) && $(MAKE) dbg
 
-$(DBG_TARGET): $(DBG_OBJECTS)
+$(DBG_TARGET): $(LIBRARIES) $(DBG_OBJECTS)
 	ar rcs $(DBG_TARGET) $(BUILD_DIR)/*-dbg.$(OBJEXT)
 
 ## make lib headers
@@ -64,7 +67,7 @@ $(HDR_TARGET): $(INCLUDE_DIR)/$(TARGET_NAME).$(HEADEREXT)
 	$(info make $(HDR_TARGET))
 
 ## build libraries
-mklib:
+$(LIBRARIES):
 	@cd $(LIB_DIR) && make
 
 ## testing / execution
