@@ -3,7 +3,7 @@ Template repository for C/C++ static libraries.
 
 ## Usage
 - Build with `make`.
-- Copy library from `lib/`.
+- Copy library from `target/`.
 
 ## Guide
 - Put all sources in `src/`.
