@@ -68,7 +68,7 @@ $(HDR_TARGET): $(INCLUDE_DIR)/$(TARGET_NAME).$(HEADEREXT)
 
 ## build libraries
 $(LIBRARIES):
-	@cd $(LIB_DIR) && make
+	@cd $(LIB_DIR) && $(MAKE)
 
 ## testing / execution
 
